@@ -106,7 +106,6 @@ int main(int argc, char **argv)
 
         ros::spinOnce();
         rate.sleep();
-        // test ㅋㅋ루삥뽕빵뽕뺘ㅕㅐ롷맨ㅇ호ㅜㅏ;ㅣㅁ누어ㅏㅓㅣ;ㄴ어ㅜㄹ;ㅣㄴ울;ㄴ우래;ㅑㅈㅁ라ㅣ눵;ㅣㅐ러ㅑㅜ내
     }
     return 0;
 }
