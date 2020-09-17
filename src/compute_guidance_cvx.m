@@ -1,6 +1,6 @@
 function  [thrust,phi_cmd,the_cmd,psi_cmd]= compute_guidance_cvx(position,velocity,psi,tgo)
 %% initial value
-
+    s_time = tic;
     delt = 0.05;
     T = tgo;
     N = int16(T/delt);
@@ -15,15 +15,15 @@ function  [thrust,phi_cmd,the_cmd,psi_cmd]= compute_guidance_cvx(position,veloci
  
  
 %     cvx_solver mosek
-    cvx_begin 
-       
+    cvx_begin quiet
+    
         variable T_c(3,N+1);
         variable r_pin(3,N+1);
         variable v_pin(3,N+1);
         
-        mag = norm(T_c,'fro'); 
+%         mag = norm(T_c,'fro'); 
         
-        minimize (mag);
+        minimize (norm(T_c,'fro'));
         
         subject to
             v_pin(:,1) == velocity;
@@ -35,14 +35,14 @@ function  [thrust,phi_cmd,the_cmd,psi_cmd]= compute_guidance_cvx(position,veloci
                 
                 r_pin(:,t+1) == r_pin(:,t) + v_pin(:,t)*delt;
                 v_pin(:,t+1) == v_pin(:,t) + (T_c(:,t)/m + g_pin)*delt;
-                norm(T_c(:,t)) <= T2;
-                T_c(2,t) <= 0
+%                 norm(T_c(:,t)) <= T2;
+%                 T_c(2,t) <= 0
 
             end
             
     cvx_end
     
-    if cvx_status == 'Solved'
+    if strcmp(cvx_status,'Solved') | strcmp(cvx_status,'Inaccurate/Solved')
         [T_n,T_e,T_d] = T_c(:,1);
         T_a = T_n*cos(psi) + T_e*sin(psi);
         T_b = T_n*sin(psi) + T_e*cos(psi);
@@ -64,5 +64,7 @@ function  [thrust,phi_cmd,the_cmd,psi_cmd]= compute_guidance_cvx(position,veloci
         the_cmd = 0;
         psi_cmd = 0;
     end
+    e_time = toc(s_time);
+    disp(e_time);
     
 end

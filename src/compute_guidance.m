@@ -1,19 +1,24 @@
 function [thrust, phi_cmd, the_cmd, psi_cmd] = compute_guidance(state, t, t_index)
     global flag;
-    global t_fail;
-    global t_detect;
     global counter;
+    global cmd0;
+    global cmd1;
+    global cmd2;
+    global cmd3;
+    t_fail = 3;
+    t_detect = 0.2;    
     Deg2Rad = pi/180;
     Rad2Deg = 1/Deg2Rad;
     tf = 7;    
     g = 9.8;
     m = 23.56; 
+    
     if  flag
         counter = 0;
-        compute_guidance.cmd0 = 0;
-        compute_guidance.cmd1 = 0;
-        compute_guidance.cmd2 = 0;
-        compute_guidance.cmd3 = 0;
+        cmd0 = 0;
+        cmd1 = 0;
+        cmd2 = 0;
+        cmd3 = 0;
         flag = false;
     end
             
@@ -76,24 +81,23 @@ function [thrust, phi_cmd, the_cmd, psi_cmd] = compute_guidance(state, t, t_inde
 
     else
         
-        % 고장 검출 후 자세 명령 산출 loop(compute_guidance_cvx함수로 계산)
-        
+        % 고장 검출 후 자세 명령 산출 loop(compute_guidance_cvx함수로 계산)    
         if (rem(counter,5)==0)
             position = [x;y;z];
             velocity = [x_dot;y_dot;z_dot];
-            [thrust, phi_cmd, the_cmd, psi_cmd] = compute_guidance_cvx(position,velocity,psi,tf-t);
-            compute_guidance.cmd0 = thrust;
-            compute_guidance.cmd1 = phi_cmd;
-            compute_guidance.cmd2 = the_cmd;
-            compute_guidance.cmd3 = psi_cmd;
+            [thrust, phi_cmd, the_cmd, psi_cmd] = compute_guidance_cvx( position,velocity,psi,tf-t );
+            cmd0 = thrust;
+            cmd1 = phi_cmd;
+            cmd2 = the_cmd;
+            cmd3 = psi_cmd;
         else
-            thrust = compute_guidance.cmd0;
-            phi_cmd = compute_guidance.cmd1;
-            the_cmd = compute_guidance.cmd2;
-            psi_cmd = compute_guidance.cmd3;
+            thrust = cmd0;
+            phi_cmd = cmd1;
+            the_cmd = cmd2;
+            psi_cmd = cmd3;
         
-        counter = counter + 1;
-
         end
+        counter = counter + 1;
+        
     end
 end
