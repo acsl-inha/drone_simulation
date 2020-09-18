@@ -79,9 +79,7 @@ function [thrust, phi_cmd, the_cmd, psi_cmd] = compute_guidance(state, t, t_inde
         % 고장 검출 후 자세 명령 산출 loop(compute_guidance_cvx함수로 계산)
         
         if (rem(counter,5)==0)
-            position = [x;y;z];
-            velocity = [x_dot;y_dot;z_dot];
-            [thrust, phi_cmd, the_cmd, psi_cmd] = compute_guidance_cvx(position,velocity,psi,tf-t);
+            [thrust, phi_cmd, the_cmd, psi_cmd] = compute_guidance_cvx((,([x_dot;y_dot;z_dot]),psi,tf-t);
             compute_guidance.cmd0 = thrust;
             compute_guidance.cmd1 = phi_cmd;
             compute_guidance.cmd2 = the_cmd;
