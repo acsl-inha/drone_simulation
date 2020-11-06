@@ -11,10 +11,15 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_datatypes.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <Eigen/Eigen>
+#include <cmath>
 #define Pi 3.14159265359
 
+double m = 1.5 + 0.015 + 0.005*4;
+double g = 9.81;
 mavros_msgs::State current_state;
 double state[12];
+
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
@@ -26,10 +31,9 @@ void Callback_pose(const geometry_msgs::PoseStamped msg_pose)
     tf::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
-    ROS_INFO("Got Euler data: %f, %f, %f", roll,pitch,yaw);
 
-    state[6] = msg_pose.pose.position.y;
-    state[7] = msg_pose.pose.position.x;
+    state[6] = msg_pose.pose.position.x;
+    state[7] = -msg_pose.pose.position.y;
     state[8] = -msg_pose.pose.position.z;
     state[9] = roll; 
     state[10] = pitch;
@@ -39,9 +43,37 @@ void Callback_pose(const geometry_msgs::PoseStamped msg_pose)
 void Callback_velocity(const geometry_msgs::TwistStamped msg_velocity)
 {
     // ROS_INFO("Got data velocity: %f, %f, %f", msg_velocity.twist.angular.x,  msg_velocity.twist.angular.y,  msg_velocity.twist.angular.z);
+    double x_dot = msg_velocity.twist.linear.x;
+    double y_dot = -msg_velocity.twist.linear.y;
+    double z_dot = -msg_velocity.twist.linear.z;
+    double phi = state[9]; 
+    double the = state[10];
+    double psi = state[11];
+    
+    Eigen::Vector3d temp(x_dot,y_dot,z_dot);
+    Eigen::Matrix3d Cbn;
+    Cbn<< std::cos(psi)*std::cos(the), std::cos(psi)*std::sin(the)*std::sin(phi) - std::sin(psi)*std::cos(phi), std::cos(psi)*std::sin(the)*std::cos(phi) + std::sin(psi)*std::cos(phi),
+                    std::sin(psi)*std::cos(the), std::sin(psi)*std::sin(the)*std::sin(phi) + std::cos(psi)*std::cos(phi), std::sin(psi)*std::sin(the)*std::cos(phi) - std::cos(psi)*std::sin(phi),
+                    -std::cos(the), std::cos(the)*std::sin(phi), std::cos(the)*std::cos(phi);
+    Eigen::Matrix3d Cbn_inv = Cbn.inverse();
+    Eigen::Vector3d v = Cbn_inv*temp;
+
+    state[0] = v[0]; 
+    state[1] = v[1];
+    state[2] = v[2];
     state[3] = msg_velocity.twist.angular.x;
     state[4] = msg_velocity.twist.angular.y;
     state[5] = msg_velocity.twist.angular.z;
+
+    for(int i=0;i<12;i++)
+    {
+        std::cout << state[i] << ',';
+        if(i==11)
+        {
+            std::cout << std::endl;
+        }
+
+    }
 }
 
 int main(int argc, char **argv)
@@ -118,7 +150,7 @@ int main(int argc, char **argv)
             }
         }
         tf2::Quaternion quaternion;
-        quaternion.setRPY( 0.1, 0.1, 0.1 );
+        quaternion.setRPY( 0, 0, Pi/2 );
 
         cmd_att.header.stamp = ros::Time::now();
         cmd_att.header.seq = count;
