@@ -14,9 +14,34 @@
 #define Pi 3.14159265359
 
 mavros_msgs::State current_state;
-
+double state[12];
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
+}
+
+void Callback_pose(const geometry_msgs::PoseStamped msg_pose)
+{
+    // ROS_INFO("Got position data: %f, %f, %f", msg_pose.pose.position.x, msg_pose.pose.position.y, msg_pose.pose.position.z);
+    tf::Quaternion q( msg_pose.pose.orientation.x, msg_pose.pose.orientation.y, msg_pose.pose.orientation.z, msg_pose.pose.orientation.w);
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+    ROS_INFO("Got Euler data: %f, %f, %f", roll,pitch,yaw);
+
+    state[6] = msg_pose.pose.position.y;
+    state[7] = msg_pose.pose.position.x;
+    state[8] = -msg_pose.pose.position.z;
+    state[9] = roll; 
+    state[10] = pitch;
+    state[11] = yaw;
+}
+
+void Callback_velocity(const geometry_msgs::TwistStamped msg_velocity)
+{
+    // ROS_INFO("Got data velocity: %f, %f, %f", msg_velocity.twist.angular.x,  msg_velocity.twist.angular.y,  msg_velocity.twist.angular.z);
+    state[3] = msg_velocity.twist.angular.x;
+    state[4] = msg_velocity.twist.angular.y;
+    state[5] = msg_velocity.twist.angular.z;
 }
 
 int main(int argc, char **argv)
@@ -25,6 +50,9 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("/mavros/state", 10, state_cb);
+    ros::Subscriber pose_sub = nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, Callback_pose);
+    ros::Subscriber vel_sub = nh.subscribe<geometry_msgs::TwistStamped>("/mavros/local_position/velocity_body", 10, Callback_velocity);
+
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
     ros::Publisher thrust_pub = nh.advertise<mavros_msgs::AttitudeTarget>("mavros/setpoint_raw/attitude",10);
 
@@ -54,7 +82,7 @@ int main(int argc, char **argv)
     mavros_msgs::AttitudeTarget cmd_att;
     double roll, pitch, yaw;
     double theta = 0.0;
-    double lambda = 1.0;
+    double lambda = 0.56;
     //send a few setpoints before starting
     for(int i = 100; ros::ok() && i > 0; --i){
         local_pos_pub.publish(pose);
@@ -90,7 +118,7 @@ int main(int argc, char **argv)
             }
         }
         tf2::Quaternion quaternion;
-        quaternion.setRPY( 0, 0, 0 );
+        quaternion.setRPY( 0.1, 0.1, 0.1 );
 
         cmd_att.header.stamp = ros::Time::now();
         cmd_att.header.seq = count;
