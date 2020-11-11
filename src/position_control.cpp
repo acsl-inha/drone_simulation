@@ -17,6 +17,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, state_cb);
+
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
@@ -77,9 +78,12 @@ int main(int argc, char **argv)
 
         theta = 2*double(time%360)*pi/180;
         
-        pose.pose.position.x = r*cos(theta) + 1;
-        pose.pose.position.y = r*sin(theta)*0.7 + 1;
-        pose.pose.position.z = 10;
+        // pose.pose.position.x = r*cos(theta) + 1;
+        // pose.pose.position.y = r*sin(theta)*0.7 + 1;
+        // pose.pose.position.z = 10;
+        pose.pose.position.x = 2;
+        pose.pose.position.y = 1;
+        pose.pose.position.z = 1;
         time++;
 
         local_pos_pub.publish(pose);

@@ -13,6 +13,11 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+find_package(cmake_modules REQUIRED)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+find_package(Eigen REQUIRED)
+include_directories(${Eigen_INCLUDE_DIRS})
+# target_link_libraries( ${Eigen_LIBRARIES} )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -107,6 +112,7 @@ catkin_package(
   LIBRARIES drone_sim
   CATKIN_DEPENDS roscpp rospy std_msgs
   DEPENDS system_lib
+  DEPENDS Eigen
 )
 
 ###########
@@ -157,6 +163,9 @@ target_link_libraries(velocity_control ${catkin_LIBRARIES} )
 target_link_libraries(attitude_control ${catkin_LIBRARIES} )      
 target_link_libraries(return2home ${catkin_LIBRARIES} )
 target_link_libraries(rotor_rpm_control ${catkin_LIBRARIES} )
+
+
+
 #############
 ## Install ##
 #############
