@@ -78,12 +78,12 @@ int main(int argc, char **argv)
 
         theta = 2*double(time%360)*pi/180;
         
-        // pose.pose.position.x = r*cos(theta) + 1;
-        // pose.pose.position.y = r*sin(theta)*0.7 + 1;
-        // pose.pose.position.z = 10;
-        pose.pose.position.x = 2;
-        pose.pose.position.y = 1;
-        pose.pose.position.z = 1;
+        pose.pose.position.x = r*cos(theta) + 1;
+        pose.pose.position.y = r*sin(theta)*0.7 + 1;
+        pose.pose.position.z = 10;
+        // pose.pose.position.x = 2;
+        // pose.pose.position.y = 1;
+        // pose.pose.position.z = 1;
         time++;
 
         local_pos_pub.publish(pose);
