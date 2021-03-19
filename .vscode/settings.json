@@ -1,0 +1,7 @@
+{
+    "jupyter.jupyterServerType": "local",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "cmake.configureOnOpen": false,
+    "python.pythonPath": "/usr/bin/python3"
+}
